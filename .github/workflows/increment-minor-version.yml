@@ -40,7 +40,7 @@ jobs:
           else
             version_changed=false
           fi
-          echo "version_changed=true" >> $GITHUB_ENV
+          echo "version_changed=$version_changed" >> $GITHUB_ENV
           echo "version_changed=$version_changed"
 
       - name: Increment minor version if not changed
