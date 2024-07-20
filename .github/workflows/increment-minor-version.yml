@@ -54,6 +54,7 @@ jobs:
           echo "new_version=$new_version" >> $GITHUB_ENV
           echo "new_version=$new_version"
           echo "current_version=$current_version"
+          echo "${{ ! env.version_changed }}"
 
       - name: Update gradle.properties with new version
         if: ${{ ! env.version_changed }}
