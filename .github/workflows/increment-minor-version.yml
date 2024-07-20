@@ -29,14 +29,18 @@ jobs:
         run: |
           current_version=$(grep 'libVersion=' gradle.properties | cut -d'=' -f2)
           echo "current_version=$current_version" >> $GITHUB_ENV
+          echo "current_version=$current_version"
 
       - name: Check if libVersion was changed
         id: check_version_change
         run: |
+          echo "Checking if libVersion was changed..."
           git fetch origin main
           if git diff origin/main...HEAD -- gradle.properties | grep 'libVersion='; then
+            echo "Version was changed."
             echo "version_changed=true" >> $GITHUB_ENV
           else
+            echo "Version was not changed."
             echo "version_changed=false" >> $GITHUB_ENV
 
       - name: Increment minor version if not changed
