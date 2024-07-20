@@ -1,0 +1,64 @@
+name: Increment Minor Version
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  increment-version:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-bot"
+          git config --global user.email "github-bot@user-github-bot.com"
+
+      - name: Extract current version
+        id: get_version
+        run: |
+          current_version=$(grep 'libVersion=' gradle.properties | cut -d'=' -f2)
+          echo "current_version=$current_version" >> $GITHUB_ENV
+
+      - name: Check if libVersion was changed
+        id: check_version_change
+        run: |
+          git fetch origin main
+          if git diff origin/main...HEAD -- gradle.properties | grep 'libVersion='; then
+            version_changed=true
+          else
+            version_changed=false
+          fi
+          echo "version_changed=$version_changed" >> $GITHUB_ENV
+
+      - name: Increment minor version if not changed
+        if: env.version_changed == 'false'
+        id: set_version
+        run: |
+          current_version=${{ env.current_version }}
+          IFS='.' read -r major minor patch <<< "$current_version"
+          minor=$((minor + 1))
+          new_version="$major.$minor.0"
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: Update gradle.properties with new version
+        if: env.version_changed == 'false'
+        run: |
+          sed -i "s/libVersion=${{ env.current_version }}/libVersion=${{ env.new_version }}/" gradle.properties
+
+      - name: Commit and push new version
+        if: env.version_changed == 'false'
+        run: |
+          git add gradle.properties
+          git commit -m "Increment version to ${{ env.new_version }}"
+          git push origin HEAD:main
+
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
