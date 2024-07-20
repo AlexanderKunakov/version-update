@@ -5,6 +5,9 @@ on:
     types:
       - closed
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 permissions:
   contents: write
 
@@ -36,15 +39,15 @@ jobs:
         run: |
           git fetch origin main
           if git diff origin/main...HEAD -- gradle.properties | grep 'libVersion='; then
-            version_update_needed=false
+            version_changed=true
           else
-            version_update_needed=true
+            version_changed=false
           fi
-          echo "version_update_needed=$version_update_needed" >> $GITHUB_ENV
-          echo "version_update_needed=$version_update_needed"
+          echo "version_changed=$version_changed" >> $GITHUB_ENV
+          echo "version_changed=$version_changed"
 
       - name: Increment minor version if not changed
-        if: ${{ env.version_update_needed }}
+        if: ${{ ! env.version_changed }}
         id: set_version
         run: |
           current_version=${{ env.current_version }}
@@ -54,16 +57,16 @@ jobs:
           echo "new_version=$new_version" >> $GITHUB_ENV
           echo "new_version=$new_version"
           echo "current_version=$current_version"
-          echo "${{ ! env.version_update_needed }}"
+          echo "${{ ! env.version_changed }}"
 
       - name: Update gradle.properties with new version
-        if: ${{ env.version_update_needed }}
+        if: ${{ ! env.version_changed }}
         run: |
           sed -i "s/libVersion=${{ env.current_version }}/libVersion=${{ env.new_version }}/" gradle.properties
           cat gradle.properties
 
       - name: Commit and push new version
-        if: ${{ env.version_update_needed }}
+        if: ${{ ! env.version_changed }}
         run: |
           git add gradle.properties
           git commit -m "Increment version to ${{ env.new_version }}"
