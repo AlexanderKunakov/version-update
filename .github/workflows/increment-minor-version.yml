@@ -5,64 +5,47 @@ on:
     types:
       - closed
 
-permissions:
-  contents: write
-
 jobs:
   increment-version:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    env:
+      GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Set up Git
+    steps:
+      - name: Checkout, Set up Git, Extract version, Check version change, Increment, Commit, and Push
         run: |
+          # Checkout repository
+          git checkout ${{ github.sha }}
+          
+          # Set up Git
           git config --global user.name "github-bot"
           git config --global user.email "github-bot@user-github-bot.com"
-
-      - name: Extract current version
-        id: get_version
-        run: |
+          
+          # Extract current version
           current_version=$(grep 'libVersion=' gradle.properties | cut -d'=' -f2)
-          echo "current_version=$current_version" >> $GITHUB_ENV
-          echo "current_version=$current_version"
-
-      - name: Check if libVersion was changed
-        id: check_version_change
-        run: |
-          echo "Checking if libVersion was changed..."
+          
+          # Check if libVersion was changed
           git fetch origin main
           if git diff origin/main...HEAD -- gradle.properties | grep 'libVersion='; then
-            echo "Version was changed."
-            echo "version_changed=true" >> $GITHUB_ENV
+            version_changed=true
           else
-            echo "Version was not changed."
-            echo "version_changed=false" >> $GITHUB_ENV
+            version_changed=false
+          fi
+          
+          # Increment minor version if not changed
+          if [ "$version_changed" = false ]; then
+            IFS='.' read -r major minor patch <<< "$current_version"
+            minor=$((minor + 1))
+            new_version="$major.$minor.0"
+          
+            # Update gradle.properties with new version
+            sed -i "s/libVersion=$current_version/libVersion=$new_version/" gradle.properties
+          
+            # Commit and push new version
+            git add gradle.properties
+            git commit -m "Increment version to $new_version"
+            git push origin HEAD:main
+          fi
 
-      - name: Increment minor version if not changed
-        if: env.version_changed == 'false'
-        id: set_version
-        run: |
-          current_version=${{ env.current_version }}
-          IFS='.' read -r major minor patch <<< "$current_version"
-          minor=$((minor + 1))
-          new_version="$major.$minor.0"
-          echo "new_version=$new_version" >> $GITHUB_ENV
-
-      - name: Update gradle.properties with new version
-        if: env.version_changed == 'false'
-        run: |
-          sed -i "s/libVersion=${{ env.current_version }}/libVersion=${{ env.new_version }}/" gradle.properties
-
-      - name: Commit and push new version
-        if: env.version_changed == 'false'
-        run: |
-          git add gradle.properties
-          git commit -m "Increment version to ${{ env.new_version }}"
-          git push origin HEAD:main
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
