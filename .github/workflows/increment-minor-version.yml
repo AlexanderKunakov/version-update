@@ -44,7 +44,7 @@ jobs:
           echo "version_changed=$version_changed"
 
       - name: Increment minor version if not changed
-        if: ${{ env.version_changed }}
+        if: ${{ ! env.version_changed }}
         id: set_version
         run: |
           current_version=${{ env.current_version }}
@@ -54,17 +54,15 @@ jobs:
           echo "new_version=$new_version" >> $GITHUB_ENV
           echo "new_version=$new_version"
           echo "current_version=$current_version"
-          echo "${{ env.version_changed }}"
-          echo "${{ ! env.version_changed }}"
 
       - name: Update gradle.properties with new version
-        if: ${{ env.version_changed }}
+        if: ${{ ! env.version_changed }}
         run: |
           sed -i "s/libVersion=${{ env.current_version }}/libVersion=${{ env.new_version }}/" gradle.properties
           cat gradle.properties
 
       - name: Commit and push new version
-        if: ${{ env.version_changed }}
+        if: ${{ ! env.version_changed }}
         run: |
           git add gradle.properties
           git commit -m "Increment version to ${{ env.new_version }}"
