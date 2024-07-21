@@ -27,12 +27,20 @@ jobs:
           git config --global user.name "github-bot"
           git config --global user.email "github-bot@user-github-bot.com"
 
-      - name: Extract current version
-        id: get_version
+      - name: Fetch main branch
+        run: git fetch origin main
+
+      - name: Show current branch and git status
         run: |
-          current_version=$(grep 'libVersion=' gradle.properties | cut -d'=' -f2)
-          echo "current_version=$current_version" >> $GITHUB_ENV
-          echo "current_version=$current_version"
+          git branch
+          git status
+
+      - name: Show commit history
+        run: |
+          echo "Commit history of current branch:"
+          git log --oneline
+          echo "Commit history of origin/main:"
+          git log origin/main --oneline
 
       - name: Display gradle.properties content
         run: cat gradle.properties
@@ -40,26 +48,31 @@ jobs:
       - name: Debug git diff output
         run: |
           echo "Running git diff..."
-          git diff origin/main...HEAD -- gradle.properties || echo "No changes detected"
+          git diff origin/main...HEAD || echo "No changes detected"
           echo "End of git diff output"
+          echo "Running git diff on gradle.properties..."
+          git diff origin/main...HEAD -- gradle.properties || echo "No changes detected in gradle.properties"
+          echo "End of git diff gradle.properties output"
 
       - name: Check if libVersion was changed
         id: check_version_change
         run: |
-          git fetch origin main
+          echo "Running git diff command to check for libVersion changes..."
           if git diff origin/main...HEAD -- gradle.properties | grep 'libVersion='; then
             echo "version_changed=true" >> $GITHUB_ENV
-            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "libVersion changed"
           else
             echo "version_changed=false" >> $GITHUB_ENV
-            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "libVersion did not change"
           fi
-          echo "version_changed=$(cat $GITHUB_ENV)"
-          echo "version_changed=$(cat $GITHUB_OUTPUT)"
 
       - name: Debug version_changed value
         run: |
-          echo "Output version_changed: ${{ steps.check_version_change.outputs.version_changed }}"
+          echo "Environment version_changed: ${{ env.version_changed }}"
+
+      - name: Test
+        id: test_id
+        run: |
           echo "Environment version_changed: ${{ env.version_changed }}"
 
 #      - name: Increment minor version if not changed
