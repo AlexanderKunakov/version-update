@@ -34,6 +34,12 @@ jobs:
           echo "current_version=$current_version" >> $GITHUB_ENV
           echo "current_version=$current_version"
 
+      - name: Debug git diff output
+        run: |
+          echo "Running git diff..."
+          git diff origin/main...HEAD -- gradle.properties || echo "No changes detected"
+          echo "End of git diff output"
+
       - name: Check if libVersion was changed
         id: check_version_change
         run: |
