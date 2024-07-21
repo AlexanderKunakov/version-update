@@ -38,27 +38,23 @@ jobs:
       - name: Show commit history
         run: |
           echo "Commit history of current branch:"
-          git log --oneline
-          echo "Commit history of origin/main:"
-          git log origin/main --oneline
+          git log --oneline -n 10
+          echo "End of commit history"
 
       - name: Display gradle.properties content
         run: cat gradle.properties
 
-      - name: Debug git diff output
+      - name: Debug git diff with previous commit
         run: |
-          echo "Running git diff..."
-          git diff origin/main...HEAD || echo "No changes detected"
-          echo "End of git diff output"
-          echo "Running git diff on gradle.properties..."
-          git diff origin/main...HEAD -- gradle.properties || echo "No changes detected in gradle.properties"
-          echo "End of git diff gradle.properties output"
+          echo "Running git diff with previous commit..."
+          git diff HEAD^ -- gradle.properties || echo "No changes detected"
+          echo "End of git diff output with previous commit"
 
       - name: Check if libVersion was changed
         id: check_version_change
         run: |
           echo "Running git diff command to check for libVersion changes..."
-          if git diff origin/main...HEAD -- gradle.properties | grep 'libVersion='; then
+          if git diff HEAD^ -- gradle.properties | grep 'libVersion='; then
             echo "version_changed=true" >> $GITHUB_ENV
             echo "libVersion changed"
           else
