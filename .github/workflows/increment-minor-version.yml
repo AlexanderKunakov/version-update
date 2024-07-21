@@ -48,7 +48,7 @@ jobs:
           echo "version_changed=$version_changed"
 
       - name: Increment minor version if not changed
-        if: steps.outputs.check_version_change.version_changed == false
+        if: steps.outputs.check_version_change.version_changed == 'false'
         id: set_version
         run: |
           current_version=${{ env.current_version }}
@@ -61,13 +61,13 @@ jobs:
           echo "${{ ! env.version_changed }}"
 
       - name: Update gradle.properties with new version
-        if: steps.outputs.check_version_change.version_changed == false
+        if: steps.outputs.check_version_change.version_changed == 'false'
         run: |
           sed -i "s/libVersion=${{ env.current_version }}/libVersion=${{ env.new_version }}/" gradle.properties
           cat gradle.properties
 
       - name: Commit and push new version
-        if: steps.outputs.check_version_change.version_changed == false
+        if: steps.outputs.check_version_change.version_changed == 'false'
         run: |
           git add gradle.properties
           git commit -m "Increment version to ${{ env.new_version }}"
