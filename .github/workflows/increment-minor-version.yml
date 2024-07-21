@@ -33,16 +33,16 @@ jobs:
           current_version=$(grep 'libVersion=' gradle.properties | cut -d'=' -f2)
           echo "current_version=$current_version" >> $GITHUB_ENV
 
-      - name: Check if libVersion was changed
+      - name: Check if libVersion was manually changed
         id: check_version_change
         run: |
           git fetch origin main
           if git diff HEAD^ -- gradle.properties | grep 'libVersion='; then
             echo "version_changed=true" >> $GITHUB_ENV
-            echo "libVersion changed"
+            echo "libVersion was changed manually"
           else
             echo "version_changed=false" >> $GITHUB_ENV
-            echo "libVersion did not change"
+            echo "libVersion was not manually changed"
           fi
 
       - name: Increment minor version if not changed
@@ -61,7 +61,7 @@ jobs:
           sed -i "s/libVersion=${{ env.current_version }}/libVersion=${{ env.new_version }}/" gradle.properties
 
       - name: Commit and push new version
-        if: env.version_changed == 'false'
+        if: {{ ! env.version_changed }}
         run: |
           git add gradle.properties
           git commit -m "Increment version to ${{ env.new_version }}"
