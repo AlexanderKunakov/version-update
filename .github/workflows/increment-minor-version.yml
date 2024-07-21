@@ -39,12 +39,12 @@ jobs:
         run: |
           git fetch origin main
           if git diff origin/main...HEAD -- gradle.properties | grep 'libVersion='; then
-            version_changed=true
+            echo "version_changed=true" >> $GITHUB_ENV
+            echo "version_changed=true" >> $GITHUB_OUTPUT
           else
-            version_changed=false
+            echo "version_changed=false" >> $GITHUB_ENV
+            echo "version_changed=false" >> $GITHUB_OUTPUT
           fi
-          echo "version_changed=$version_changed" >> $GITHUB_ENV
-          echo "version_changed=$version_changed" >> $GITHUB_OUTPUT
           echo "version_changed=$version_changed"
 
       - name: test
