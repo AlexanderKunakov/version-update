@@ -47,30 +47,36 @@ jobs:
           echo "version_changed=$version_changed" >> $GITHUB_OUTPUT
           echo "version_changed=$version_changed"
 
-      - name: Increment minor version if not changed
-        if: steps.outputs.check_version_change.version_changed == 'false'
-        id: set_version
+      - name: test
+        id: test_id
         run: |
-          current_version=${{ env.current_version }}
-          IFS='.' read -r major minor patch <<< "$current_version"
-          minor=$((minor + 1))
-          new_version="$major.$minor.0"
-          echo "new_version=$new_version" >> $GITHUB_ENV
-          echo "new_version=$new_version"
-          echo "current_version=$current_version"
-          echo "${{ ! env.version_changed }}"
+          echo "${{ steps.outputs.check_version_change.version_changed }}"
+          echo "${{ env.version_changed }}"
 
-      - name: Update gradle.properties with new version
-        if: steps.outputs.check_version_change.version_changed == 'false'
-        run: |
-          sed -i "s/libVersion=${{ env.current_version }}/libVersion=${{ env.new_version }}/" gradle.properties
-          cat gradle.properties
-
-      - name: Commit and push new version
-        if: steps.outputs.check_version_change.version_changed == 'false'
-        run: |
-          git add gradle.properties
-          git commit -m "Increment version to ${{ env.new_version }}"
-          git push origin HEAD:main
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+#      - name: Increment minor version if not changed
+#        if: steps.outputs.check_version_change.version_changed == 'false'
+#        id: set_version
+#        run: |
+#          current_version=${{ env.current_version }}
+#          IFS='.' read -r major minor patch <<< "$current_version"
+#          minor=$((minor + 1))
+#          new_version="$major.$minor.0"
+#          echo "new_version=$new_version" >> $GITHUB_ENV
+#          echo "new_version=$new_version"
+#          echo "current_version=$current_version"
+#          echo "${{ ! env.version_changed }}"
+#
+#      - name: Update gradle.properties with new version
+#        if: steps.outputs.check_version_change.version_changed == 'false'
+#        run: |
+#          sed -i "s/libVersion=${{ env.current_version }}/libVersion=${{ env.new_version }}/" gradle.properties
+#          cat gradle.properties
+#
+#      - name: Commit and push new version
+#        if: steps.outputs.check_version_change.version_changed == 'false'
+#        run: |
+#          git add gradle.properties
+#          git commit -m "Increment version to ${{ env.new_version }}"
+#          git push origin HEAD:main
+#        env:
+#          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
