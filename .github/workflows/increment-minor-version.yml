@@ -50,7 +50,7 @@ jobs:
       - name: test
         id: test_id
         run: |
-          echo "${{ steps.outputs.check_version_change.version_changed }}"
+          echo "${{ steps.check_version_change.outputs.version_changed }}"
           echo "${{ env.version_changed }}"
 
 #      - name: Increment minor version if not changed
