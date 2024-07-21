@@ -68,7 +68,7 @@ jobs:
           cat gradle.properties
 
       - name: Commit and push new version
-        if: ${{ env.version_changed }} == 'false'
+        if: env.version_changed == 'false'
         run: |
           git add gradle.properties
           git commit -m "Increment version to ${{ env.new_version }}"
