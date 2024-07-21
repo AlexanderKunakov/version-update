@@ -12,8 +12,8 @@ permissions:
   contents: write
 
 jobs:
-  increment-minor-version:
-    if: github.event.pull_request.merged == true
+  increment-patch-version:
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'fix/')
     runs-on: ubuntu-latest
 
     steps:
@@ -51,8 +51,8 @@ jobs:
         run: |
           current_version=${{ env.current_version }}
           IFS='.' read -r major minor patch <<< "$current_version"
-          minor=$((minor + 1))
-          new_version="$major.$minor.0"
+          patch=$((patch + 1))
+          new_version="$major.$minor.$patch"
           echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: Update gradle.properties with new version
