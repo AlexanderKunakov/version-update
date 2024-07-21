@@ -37,6 +37,7 @@ jobs:
         id: check_version_change
         run: |
           git fetch origin main
+          git rebase origin/main
           if git diff HEAD^ -- gradle.properties | grep 'libVersion='; then
             echo "version_changed=true" >> $GITHUB_ENV
             echo "libVersion was changed manually"

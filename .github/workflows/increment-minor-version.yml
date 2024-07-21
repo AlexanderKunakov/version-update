@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   increment-minor-version:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'feature/')
     runs-on: ubuntu-latest
 
     steps:
@@ -37,6 +37,7 @@ jobs:
         id: check_version_change
         run: |
           git fetch origin main
+          git rebase origin/main
           if git diff HEAD^ -- gradle.properties | grep 'libVersion='; then
             echo "version_changed=true" >> $GITHUB_ENV
             echo "libVersion was changed manually"
